@@ -1,0 +1,25 @@
+{
+  "name": "http-hash-mocker",
+  "version": "1.0.0",
+  "description": "create mock data with http hash",
+  "main": "mocker.js",
+  "scripts": {
+    "test": "node test | faucet"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:wenbing/http-hash-mocker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "servertest": "^1.2.1",
+    "faucet": "0.0.1",
+    "tape": "^4.4.0"
+  },
+  "dependencies": {
+    "http-hash-router": "^1.1.0",
+    "send-data": "^8.0.0"
+  }
+}
