@@ -23,6 +23,15 @@ const server = http.createServer(function (req, res) {
 });
 ```
 
+test/fixtures/api/photo/200.js
+
+```js
+module.exports = {
+  statusCode: 200,
+  body: 'OK',
+};
+```
+
 test/fixtures/api/photo/:photoid.js
 
 ```js
