@@ -25,7 +25,7 @@ tape('mocker pathname', function (t) {
   servertest(server, '/api/photo/200', { encoding: 'utf8' }, function (err, res) {
     t.ifError(err, 'no error')
     t.equal(res.statusCode, 200, 'correct statusCode')
-    t.equal(res.body, 'OK', 'correct body content')
+    t.equal(res.body, '"OK"', 'correct body content')
     t.end();
   });
 });
