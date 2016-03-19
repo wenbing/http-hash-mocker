@@ -6,8 +6,9 @@ const path = require('path');
 const xtend = require('xtend');
 const httpHashRouter = require('http-hash-router');
 const isSendObject = require('send-data/is-send-object');
+const httpMethods = require('http-methods');
 const sendJson = require('send-data/json');
-const sendPlain = require('send-data/plain'); 
+const sendPlain = require('send-data/plain');
  
 function create(routes, mopts) {
   if (!mopts || !mopts.basedir) {
@@ -19,14 +20,17 @@ function create(routes, mopts) {
   function addRoute(route) {
     const filepath = path.resolve(mopts.basedir, 'test/fixtures' + route + '.js');
     const result = require(filepath);
+
     if (typeof result === 'function') {
       router.set(route, result);
       return;
     }
-    if (!isSendObject) {
+
+    if (!isSendObject(result)) {
       router.set(route, result);
       return;
     }
+
     router.set(route, function(req, res, opts, cb) {
       sendJson(req, res, xtend(opts, result), cb);
     });
@@ -49,7 +53,15 @@ function create(routes, mopts) {
       return router(req, res, opts, cb);
     }
 
-    sendJson(req, res, xtend(opts, result), cb);
+    if (typeof result === 'function') {
+      return result(req, res, opts, cb);
+    }
+
+    if (!isSendObject(result)) {
+      return httpMethods(result)(req, res, opts, cb);
+    }
+
+    return sendJson(req, res, xtend(opts, result), cb);
   }
 
   mockapi.router = router;
