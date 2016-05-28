@@ -15,6 +15,8 @@ function create(routes, mopts) {
     throw new Error('mopts.basedir 必须');
   }
 
+  const rootdir = mopts.rootdir || '/';
+
   const router = httpHashRouter();
 
   function addRoute(route) {
@@ -40,17 +42,19 @@ function create(routes, mopts) {
 
   function mockapi(req, res, opts, cb) {
     const pathname = url.parse(req.url).pathname;
-    const filepath = path.resolve(mopts.basedir, 'test/fixtures' + pathname + '.js');
+    const filepath = path.resolve(
+      mopts.basedir, 'test/fixtures' + pathname.slice(rootdir.length - 1) + '.js'
+    );
     let result;
     try {
       result = require(filepath);
     } catch (err) {
-      if (err.code !== 'MODULE_NOT_FOUND') {
-        return process.nextTick(function() {
-          cb(err);
-        });
+      if (err.code === 'MODULE_NOT_FOUND' && err.message.indexOf(filepath) !== -1) {
+        return router(req, res, opts, cb);
       }
-      return router(req, res, opts, cb);
+      return process.nextTick(function() {
+        cb(err);
+      });
     }
 
     if (typeof result === 'function') {

@@ -68,3 +68,11 @@ tape('mocker http-methods route post', function (t) {
   })
   .end();
 });
+
+tape('require nonexists module throws', function (t) {
+  servertest(server, '/api/throw/500', { method: 'GET', encoding: 'json' }, function (err, res) {
+    t.ok(err, 'throw err');
+    t.end();
+  })
+  .end();
+});
