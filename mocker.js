@@ -16,7 +16,9 @@ function create(routes, mopts) {
   if (!mopts || !mopts.basedir) {
     throw new Error('mopts.basedir 必须');
   }
-
+  if (!Array.isArray(routes)) {
+    routes = [];
+  }
   const rootdir = mopts.rootdir || '/';
 
   const router = httpHashRouter();
@@ -56,9 +58,8 @@ function create(routes, mopts) {
     } catch (err) {
       if (!mopts.autoMock) {
         return router(req, res, opts, cb);
-      } else { console.log('it is in mock ****')
+      } else {
         const filepathDir = path.dirname(filepath);
-        console.log('create a new file: ', filepathDir);
         mkdirp.sync(filepathDir);
         // 模板文件初始化mock文件
         var srcPath = path.join(__dirname, './dataTemplate.js');
@@ -72,7 +73,7 @@ function create(routes, mopts) {
       }
     }
     function dealResult() {
-      const result = require(filepath); console.log('&&result**:::', result, filepath)
+      const result = require(filepath);
       if (typeof result === 'function') {
         return result(req, res, opts, cb);
       }

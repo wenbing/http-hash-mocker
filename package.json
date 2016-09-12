@@ -4,7 +4,7 @@
   "description": "create mock data with http hash",
   "main": "mocker.js",
   "scripts": {
-    "test": "node test | faucet"
+    "test": "tap test/*Spec.js --cov "
   },
   "repository": {
     "type": "git",
@@ -14,8 +14,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "servertest": "^1.2.1",
     "faucet": "0.0.1",
+    "servertest": "^1.2.1",
+    "tap": "^7.1.2",
     "tape": "^4.4.0"
   },
   "dependencies": {

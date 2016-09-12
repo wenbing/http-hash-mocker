@@ -1,3 +1,6 @@
+/*
+ * 遵守约定的前后端规范
+ */
 const mockjs = require('mockjs');
 const data = mockjs.mock({
   'total|1-1000': 1,
