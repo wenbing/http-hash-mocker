@@ -2,6 +2,7 @@
 'use strict';
 const url = require('url');
 const path = require('path');
+const fs = require('fs');
 
 const xtend = require('xtend');
 const httpHashRouter = require('http-hash-router');
@@ -9,18 +10,22 @@ const isSendObject = require('send-data/is-send-object');
 const httpMethods = require('http-methods');
 const sendJson = require('send-data/json');
 const sendPlain = require('send-data/plain');
- 
+const mkdirp = require('mkdirp');
+
 function create(routes, mopts) {
   if (!mopts || !mopts.basedir) {
     throw new Error('mopts.basedir 必须');
   }
-
+  if (!Array.isArray(routes)) {
+    routes = [];
+  }
   const rootdir = mopts.rootdir || '/';
 
   const router = httpHashRouter();
 
   function addRoute(route) {
     const filepath = path.resolve(mopts.basedir, 'test/fixtures' + route + '.js');
+    delete require.cache[filepath];
     const result = require(filepath);
 
     if (typeof result === 'function') {
@@ -45,31 +50,42 @@ function create(routes, mopts) {
     const filepath = path.resolve(
       mopts.basedir, 'test/fixtures' + pathname.slice(rootdir.length - 1) + '.js'
     );
-    let result;
+    let ws;
     try {
-      result = require(filepath);
+      delete require.cache[filepath];
+      require.resolve(filepath);
+      dealResult();
     } catch (err) {
-      if (err.code === 'MODULE_NOT_FOUND' && err.message.indexOf(filepath) !== -1) {
+      if (!mopts.autoMock) {
         return router(req, res, opts, cb);
+      } else {
+        const filepathDir = path.dirname(filepath);
+        mkdirp.sync(filepathDir);
+        // 模板文件初始化mock文件
+        var srcPath = path.join(__dirname, './dataTemplate.js');
+        ws = fs.createReadStream(srcPath).pipe(fs.createWriteStream(filepath));
+        ws.on('finish', () => {
+          dealResult();
+        });
+        ws.on('error', (err) => {
+          cb(err);
+        });
       }
-      return process.nextTick(function() {
-        cb(err);
-      });
     }
+    function dealResult() {
+      const result = require(filepath);
+      if (typeof result === 'function') {
+        return result(req, res, opts, cb);
+      }
 
-    if (typeof result === 'function') {
-      return result(req, res, opts, cb);
+      if (!isSendObject(result)) {
+        return httpMethods(result)(req, res, opts, cb);
+      }
+      return sendJson(req, res, xtend(opts, result), cb);
     }
-
-    if (!isSendObject(result)) {
-      return httpMethods(result)(req, res, opts, cb);
-    }
-
-    return sendJson(req, res, xtend(opts, result), cb);
   }
-
   mockapi.router = router;
   return mockapi;
 }
- 
+
 module.exports = create;
