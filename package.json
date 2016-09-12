@@ -21,6 +21,7 @@
   "dependencies": {
     "http-hash-router": "^1.1.0",
     "http-methods": "^1.0.0",
+    "mockjs": "^1.0.1-beta3",
     "send-data": "^8.0.0"
   }
 }
