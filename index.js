@@ -34,6 +34,7 @@ const createMocker = mopts => (req, res, opts, cb) => {
   try {
     result = require(filepath);
   } catch (err) {
+    // Todo： 如果请求路径对应文件存在，则不会走 router，如果不存在则可能报错，所以 router 存在的意义？
     if (err.code === 'MODULE_NOT_FOUND' && err.message.indexOf(filepath) !== -1) {
       mopts.router(req, res, opts, cb);
     } else {
@@ -50,8 +51,13 @@ const useDefaults = createMocker => mopts => {
   }
   const rootdir = mopts.rootdir || '/';
   const locator = mopts.locator || 'test/fixtures';
-  const mocker = createMocker(xtend(mopts, { rootdir, locator }));
-  return mocker;
+  const template = mopts.template || `
+module.exports = {
+  statusCode: 200,
+  body: 'hello world',
+};
+`;
+  return createMocker(xtend(mopts, { rootdir, locator, template }));
 };
 
 const useRoutes = createMocker => mopts => {
@@ -66,6 +72,7 @@ const useRoutes = createMocker => mopts => {
       route.slice(mopts.rootdir.length) + '.js'
     );
     router.set(route, (req, res, opts, cb) => {
+      // Todo: 若未开启 autoGenerate，routes 表里有路径但无此文件，是否会报错
       const result = require(filepath);
       processResult(result, req, res, opts, cb);
     });
@@ -78,15 +85,8 @@ const useGenerate = createMocker => mopts => {
   if (mopts.autoGenerate !== true) {
     return mocker;
   }
-  const template = mopts.template || `
-module.exports = {
-  statusCode: 200,
-  body: 'hello world',
-};
-`;
   return (req, res, opts, cb) => {
-    const pathname = url.parse(req.url).pathname;
-    let uri = pathname;
+    let uri = url.parse(req.url).pathname;
     if (mopts.router) {
       const route = mopts.router.hash.get(req.url);
       if (route.src != null) {
@@ -104,7 +104,7 @@ module.exports = {
         return;
       }
       if (err.code !== 'ENOENT') {
-        cb(err)
+        cb(err);
         return;
       }
       const dirname = path.dirname(filepath);

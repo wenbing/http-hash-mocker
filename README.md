@@ -3,19 +3,23 @@ http-hash-mocker
 
 http-hash-mocker create request handler
 
-
-```jsig
+```js
 import { HttpRequest, HttpResponse } from "node.http"
 
 type RoutePattern : String
 
 type MockerOpts : {
   basedir: String,
-  rootdir?: String,
-  locator?: String,
+  rootdir?: String = '/', // mocking urls' public path
+  locator?: String = 'test/fixtures, // where to find handle-mock files, will combine with basedir
   routes?: Array<RoutePattern>,
-  autoGenerate?: Boolean,
-  template?: String,
+  autoGenerate?: Boolean, // whether it will generate handle-mock files if the url-correspond file doesn't exist
+  template?: String = `
+    module.exports = {
+      statusCode: 200,
+      body: 'hello world',
+    };
+   `, // uses to generate handling files
 }
 
 type Router : (
@@ -29,6 +33,8 @@ type Mocker : { router: HttpHashRouter } & Router
 http-hash-mocker : (mopts: MockerOpts) => Mocker
 ```
 
+### Example
+
 ```js
 const http = require('http');
 const path = require('path');
@@ -36,10 +42,8 @@ const sendError = require('send-data/error');
 
 const mocker = require('http-hash-mocker')({
   basedir: path.resolve(__dirname, '../')
-  // rootdir: '/',
-  // locator: 'test/fixtures',
   routes: [
-    '/api/photo/:photoid'
+    '/api/photo/:photoid' // dones't affect mock result
   ],
   autoGenerate: true,
   template: `
@@ -61,23 +65,44 @@ const server = http.createServer(function (req, res) {
 });
 ```
 
-test/fixtures/api/photo/200.js
+You can export several types in your handle-mock files:
+
+1. JSON Data
 
 ```js
+// test/fixtures/api/photo/200.js
+// correspond to url: /api/photo/200
+
 module.exports = {
   statusCode: 200,
   body: 'OK',
-};
+}; // mocker will use sed-data/json to send this object
 ```
 
-test/fixtures/api/photo/:photoid.js
+2. Request Handler
 
 ```js
+// test/fixtures/api/photo/:photoid.js
+// correspond to url: /api/photo/:photoid
+
 const sendPlain = require('send-data/plain');
 
 module.exports = function (req, res, opts, cb) {
-  sendPlain(req, res, 'Nine Nine Nine', cb);
+  sendPlain(req, res, 'Nine Nine Nine' + opts.params.photoid, cb);
 };
+```
+
+3. HTTP Verb Object
+
+```js
+// test/fixtures/api/photo/verbs.js
+// correspond to: GET /api/photo/verbs
+
+module.exports = {
+  GET(req, res) {
+    res.end(req.headers['content-type']);
+  }
+}; // handled by 'http-verb'
 ```
 
 you mock it.
