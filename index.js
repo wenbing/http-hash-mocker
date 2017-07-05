@@ -50,8 +50,7 @@ const useDefaults = createMocker => mopts => {
   }
   const rootdir = mopts.rootdir || '/';
   const locator = mopts.locator || 'test/fixtures';
-  const mocker = createMocker(xtend(mopts, { rootdir, locator }));
-  return mocker;
+  return createMocker(xtend(mopts, { rootdir, locator }));
 };
 
 const useRoutes = createMocker => mopts => {
@@ -85,8 +84,7 @@ module.exports = {
 };
 `;
   return (req, res, opts, cb) => {
-    const pathname = url.parse(req.url).pathname;
-    let uri = pathname;
+    let uri = url.parse(req.url).pathname;
     if (mopts.router) {
       const route = mopts.router.hash.get(req.url);
       if (route.src != null) {
