@@ -7,7 +7,7 @@ const servertest = require('servertest');
 const tape = require('tape');
 const sendError = require('send-data/error');
 
-const createMocker = require('../');
+const router = require('../');
 
 const handleError = function (req, res, err) {
   if (err) {
@@ -25,7 +25,7 @@ const clean = () => {
   } catch(ex) {}
 };
 
-const mocker = createMocker({
+const initOpts = {
   basedir: path.resolve(__dirname, '../'),
   routes: [
     '/api/photo/:photoid',
@@ -33,18 +33,10 @@ const mocker = createMocker({
     '/api/picture/:is-plain-object',
   ],
   autoGenerate: false,
-});
+};
 
 const server = http.createServer(function (req, res) {
-  mocker(req, res, {}, (err) => handleError(req, res, err));
-});
-
-//*/
-tape('mocker basedir', function (t) {
-  t.throws(() => {
-    createMocker({});
-  });
-  t.end();
+  router(req, res, initOpts, (err) => handleError(req, res, err));
 });
 
 tape('mocker pathname', function (t) {
