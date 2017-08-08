@@ -16,31 +16,23 @@ const processResult = router => R.curry((req, res, opts, cb) => R.cond([
   [R.T, r => sendJson(req, res, R.merge(opts, r), cb)],
 ])(router));
 
-const handler = R.curry((req, res, opts, cb) => {
-  const { basedir, locator, rootdir } = opts;
-  const pathname = url.parse(req.url).pathname;
-  const filepath = path.resolve(basedir, locator, pathname.slice(rootdir.length) + '.js');
-  R.compose(
-    R.unless(
-      R.isNil,
-      router => processResult(router)(req, res, opts, cb)
-    ),
-    R.tryCatch(
-      require,
-      R.compose(
-        R.always(null),
-        R.ifElse(
-          R.where({
-            code: R.equals('MODULE_NOT_FOUND'),
-            message: R.contains(filepath),
-          }),
-          () => opts.router(req, res, opts, cb),
-          err => process.nextTick(() => cb(err))
-        )
+const handler = R.curry((req, res, opts, cb) => R.compose(
+  R.unless(R.isNil, router => processResult(router)(req, res, opts, cb)),
+  filepath => R.tryCatch(
+    require,
+    R.compose(
+      R.always(null),
+      R.ifElse(
+        R.where({ code: R.equals('MODULE_NOT_FOUND'), message: R.contains(filepath) }),
+        () => opts.router(req, res, opts, cb),
+        err => process.nextTick(() => cb(err))
       )
     )
-  )(filepath);
-});
+  )(filepath),
+  pathname => path.resolve(opts.basedir, opts.locator, pathname + '.js'),
+  R.slice(opts.rootdir.length, Infinity),
+  R.compose(R.path(['pathname']), url.parse, R.path(['url']))
+)(req));
 
 const useDefaults = router => R.curry((req, res, opts, cb) => R.ifElse(
   R.compose(R.isNil, R.path(['basedir'])),
@@ -61,15 +53,12 @@ const useRoutes = router => R.curry((req, res, opts, cb) => R.compose(
         routes.forEach(route => {
           const filepath = path.resolve(basedir, locator, route.slice(rootdir.length) + '.js');
           optsR.router.set(route, (reqIn, resIn, optsIn, cbIn) => {
-            const routerIn = require(filepath); // 这里是否需要 try-catch 一下？使用者自己保证 mock 文件存在？
+            const routerIn = require(filepath);
             processResult(routerIn)(reqIn, resIn, optsIn, cbIn);
           });
         });
       }),
-      R.when(
-        R.propSatisfies(R.isNil, 'router'),
-        R.assoc('router', httpHashRouter())
-      )
+      R.when(R.propSatisfies(R.isNil, 'router'), R.assoc('router', httpHashRouter()))
     )
   )
 )(opts));
