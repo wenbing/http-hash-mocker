@@ -32,7 +32,7 @@ const mocker = createMocker({
     '/api/album/:albumid',
     '/api/picture/:is-plain-object',
   ],
-  autoGenerate: true,
+  autoGenerate: false,
 });
 
 const server = http.createServer(function (req, res) {
@@ -120,37 +120,3 @@ tape('require nonexists module throws', function (t) {
   .end();
 });
 //*/
-
-tape('mocker autoGenerate', function (t) {
-  servertest(server, '/api/generate/100', { encoding: 'json' }, function (err, res) {
-    clean();
-    t.error(err);
-    t.equal(res.body, 'hello world');
-    t.end();
-  });
-});
-
-const mocker2 = createMocker({
-  basedir: path.resolve(__dirname, '../'),
-  autoGenerate: true,
-  template: `
-module.exports = {
-  statusCode: 200,
-  body: {
-    hello: 'world',
-  },
-};
-`,
-});
-const server2 = http.createServer(function (req, res) {
-  mocker2(req, res, {}, (err) => handleError(req, res, err));
-});
-
-tape('mocker template', function (t) {
-  servertest(server2, '/api/generate/100', { encoding: 'json' }, function (err, res) {
-    clean();
-    t.error(err);
-    t.equal(res.body.hello, 'world');
-    t.end();
-  });
-});

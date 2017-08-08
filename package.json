@@ -23,6 +23,7 @@
     "http-hash-router": "^1.1.0",
     "http-methods": "^1.0.0",
     "mkdirp": "^0.5.1",
+    "ramda": "^0.24.1",
     "send-data": "^8.0.0"
   }
 }
