@@ -35,7 +35,7 @@ const handler = R.curry((req, res, opts, cb) => R.compose(
 )(req));
 
 const useDefaults = router => R.curry((req, res, opts, cb) => R.ifElse(
-  R.compose(R.isNil, R.path(['basedir'])),
+  R.where({ basedir: R.isNil }),
   () => { throw new Error('mopts.basedir is undefined'); },
   R.compose(
     router(req, res, R.__, cb),
@@ -46,7 +46,7 @@ const useDefaults = router => R.curry((req, res, opts, cb) => R.ifElse(
 const useRoutes = router => R.curry((req, res, opts, cb) => R.compose(
   router(req, res, R.__, cb),
   R.when(
-    R.propSatisfies(R.is(Array), 'routes'),
+    R.where({ routes: R.is(Array) }),
     R.compose(
       R.tap(optsR => {
         const { basedir, locator, rootdir, routes } = optsR;
@@ -58,7 +58,7 @@ const useRoutes = router => R.curry((req, res, opts, cb) => R.compose(
           });
         });
       }),
-      R.when(R.propSatisfies(R.isNil, 'router'), R.assoc('router', httpHashRouter()))
+      R.when(R.where({ router: R.isNil }), R.assoc('router', httpHashRouter()))
     )
   )
 )(opts));
