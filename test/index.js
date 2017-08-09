@@ -15,14 +15,6 @@ const handleError = (req, res, err) => {
   }
 };
 
-const clean = () => {
-  const filepath = path.resolve(__dirname, '..', 'test/fixtures', 'api/generate/100.js');
-  delete require.cache[filepath];
-  try {
-    fs.unlinkSync(filepath);
-  } catch (ex) { (() => {})(); }
-};
-
 const initOpts = {
   basedir: path.resolve(__dirname, '../'),
   routes: [

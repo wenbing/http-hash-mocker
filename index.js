@@ -10,13 +10,13 @@ const httpMethods = require('http-methods');
 const sendJson = require('send-data/json');
 const R = require('ramda');
 
-const processResult = router => R.curry((req, res, opts, cb) => R.cond([
+const processResult = router => (req, res, opts, cb) => R.cond([
   [R.is(Function), r => r(req, res, opts, cb)],
   [R.complement(isSendObject), r => httpMethods(r)(req, res, opts, cb)],
   [R.T, r => sendJson(req, res, R.merge(opts, r), cb)],
-])(router));
+])(router);
 
-const handler = R.curry((req, res, opts, cb) => R.compose(
+const handler = (req, res, opts, cb) => R.compose(
   R.unless(R.isNil, router => processResult(router)(req, res, opts, cb)),
   filepath => R.tryCatch(
     require,
@@ -32,19 +32,19 @@ const handler = R.curry((req, res, opts, cb) => R.compose(
   pathname => path.resolve(opts.basedir, opts.locator, pathname + '.js'),
   R.slice(opts.rootdir.length, Infinity),
   R.compose(R.path(['pathname']), url.parse, R.path(['url']))
-)(req));
+)(req);
 
-const useDefaults = router => R.curry((req, res, opts, cb) => R.ifElse(
+const useDefaults = router => (req, res, opts, cb) => R.ifElse(
   R.where({ basedir: R.isNil }),
   () => { throw new Error('opts.basedir is undefined'); },
   R.compose(
-    router(req, res, R.__, cb),
+    opt => router(req, res, opt, cb),
     R.mergeDeepRight({ rootdir: '/', locator: 'test/fixtures' })
   )
-)(opts));
+)(opts);
 
-const useRoutes = router => R.curry((req, res, opts, cb) => R.compose(
-  router(req, res, R.__, cb),
+const useRoutes = router => (req, res, opts, cb) => R.compose(
+  opt => router(req, res, opt, cb),
   R.when(
     R.where({ routes: R.is(Array) }),
     R.compose(
@@ -61,6 +61,6 @@ const useRoutes = router => R.curry((req, res, opts, cb) => R.compose(
       R.when(R.where({ router: R.isNil }), R.assoc('router', httpHashRouter()))
     )
   )
-)(opts));
+)(opts);
 
 module.exports = R.compose(useDefaults, useRoutes)(handler);

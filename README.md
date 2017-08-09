@@ -1,10 +1,10 @@
 http-hash-mocker
 ====
 
-http-hash-mocker create request handler
+http-hash-mocker using http-hash-router to mock server response
 
 
-```jsig
+```js
 import { HttpRequest, HttpResponse } from "node.http"
 
 type RoutePattern : String
@@ -14,8 +14,6 @@ type MockerOpts : {
   rootdir?: String,
   locator?: String,
   routes?: Array<RoutePattern>,
-  autoGenerate?: Boolean,
-  template?: String,
 }
 
 type Router : (
