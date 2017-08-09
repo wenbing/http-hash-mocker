@@ -36,7 +36,7 @@ const handler = R.curry((req, res, opts, cb) => R.compose(
 
 const useDefaults = router => R.curry((req, res, opts, cb) => R.ifElse(
   R.where({ basedir: R.isNil }),
-  () => { throw new Error('mopts.basedir is undefined'); },
+  () => { throw new Error('opts.basedir is undefined'); },
   R.compose(
     router(req, res, R.__, cb),
     R.mergeDeepRight({ rootdir: '/', locator: 'test/fixtures' })
