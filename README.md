@@ -1,7 +1,7 @@
 http-hash-mocker
 ====
 
-http-hash-mocker using http-hash-router to mock server response
+http-hash-mocker using http-hash-router to mock backend server response (request handler).
 
 
 ```js
@@ -24,32 +24,26 @@ type Router : (
 ) => void
 type Mocker : { router: HttpHashRouter } & Router
 
-http-hash-mocker : (mopts: MockerOpts) => Mocker
+http-hash-mocker : Mocker
 ```
 
 ```js
 const http = require('http');
 const path = require('path');
 const sendError = require('send-data/error');
+const router = require('http-hash-mocker');
 
-const mocker = require('http-hash-mocker')({
-  basedir: path.resolve(__dirname, '../')
+const initOpts = {
+  basedir: path.resolve(__dirname, '../'),
   // rootdir: '/',
   // locator: 'test/fixtures',
   routes: [
-    '/api/photo/:photoid'
+    '/api/photo/:photoid',
   ],
-  autoGenerate: true,
-  template: `
-module.exports = {
-  statusCode: 200,
-  body: 'hello data template',
 };
-`,
-});
 
 const server = http.createServer(function (req, res) {
-  mocker(req, res, {}, function (err) {
+  router(req, res, initOpts, function (err) {
     if (err) {
       if (!res.finished) {
         sendError(req, res, { body: err });
