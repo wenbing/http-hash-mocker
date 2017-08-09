@@ -9,11 +9,9 @@ const sendError = require('send-data/error');
 
 const router = require('../');
 
-const handleError = function (req, res, err) {
-  if (err) {
-    if (!res.finished) {
-      sendError(req, res, { body: err });
-    }
+const handleError = (req, res, err) => {
+  if (err && !res.finished) {
+    sendError(req, res, { body: err });
   }
 };
 
@@ -22,7 +20,7 @@ const clean = () => {
   delete require.cache[filepath];
   try {
     fs.unlinkSync(filepath);
-  } catch(ex) {}
+  } catch (ex) { (() => {})(); }
 };
 
 const initOpts = {
@@ -32,83 +30,81 @@ const initOpts = {
     '/api/album/:albumid',
     '/api/picture/:is-plain-object',
   ],
-  autoGenerate: false,
 };
 
-const server = http.createServer(function (req, res) {
+const server = http.createServer((req, res) => {
   router(req, res, initOpts, (err) => handleError(req, res, err));
 });
 
-tape('mocker pathname', function (t) {
-  servertest(server, '/api/photo/200', { encoding: 'utf8' }, function (err, res) {
-    t.ifError(err, 'no error')
-    t.equal(res.statusCode, 200, 'correct statusCode')
-    t.equal(res.body, '"OK"', 'correct body content')
+tape('mocker pathname', (t) => {
+  servertest(server, '/api/photo/200', { encoding: 'utf8' }, (err, res) => {
+    t.ifError(err, 'no error');
+    t.equal(res.statusCode, 200, 'correct statusCode');
+    t.equal(res.body, '"OK"', 'correct body content');
     t.end();
   });
 });
 
-tape('mocker routes', function (t) {
-  servertest(server, '/api/photo/999', { encoding: 'utf8' }, function (err, res) {
-    t.ifError(err, 'no error')
-    t.equal(res.statusCode, 200, 'correct statusCode')
-    t.equal(res.body, 'Nine Nine Nine', 'correct body content')
+tape('mocker routes', (t) => {
+  servertest(server, '/api/photo/999', { encoding: 'utf8' }, (err, res) => {
+    t.ifError(err, 'no error');
+    t.equal(res.statusCode, 200, 'correct statusCode');
+    t.equal(res.body, 'Nine Nine Nine', 'correct body content');
     t.end();
   });
 });
 
-tape('mocker function', function (t) {
-  servertest(server, '/api/photo/888', { encoding: 'utf8' }, function (err, res) {
-    t.ifError(err, 'no error')
-    t.equal(res.statusCode, 200, 'correct statusCode')
-    t.equal(res.body, 'Eight Eight Eight', 'correct body content')
+tape('mocker function', (t) => {
+  servertest(server, '/api/photo/888', { encoding: 'utf8' }, (err, res) => {
+    t.ifError(err, 'no error');
+    t.equal(res.statusCode, 200, 'correct statusCode');
+    t.equal(res.body, 'Eight Eight Eight', 'correct body content');
     t.end();
   });
 });
 
-tape('mocker http-methods', function (t) {
-  servertest(server, '/api/photo/300', { encoding: 'utf8' }, function (err, res) {
-    t.ifError(err, 'no error')
-    t.equal(res.statusCode, 200, 'correct statusCode')
-    t.equal(res.body, '300 plain', 'correct body content')
+tape('mocker http-methods', (t) => {
+  servertest(server, '/api/photo/300', { encoding: 'utf8' }, (err, res) => {
+    t.ifError(err, 'no error');
+    t.equal(res.statusCode, 200, 'correct statusCode');
+    t.equal(res.body, '300 plain', 'correct body content');
     t.end();
   });
 });
 
-tape('mocker http-methods isSendObject', function (t) {
-  servertest(server, '/api/picture/isPlainObject', { encoding: 'json' }, function (err, res) {
-    t.ifError(err, 'no error')
-    t.equal(res.statusCode, 200, 'correct statusCode')
-    t.equal(res.body.is, 'plain object', 'correct body content')
+tape('mocker http-methods isSendObject', (t) => {
+  servertest(server, '/api/picture/isPlainObject', { encoding: 'json' }, (err, res) => {
+    t.ifError(err, 'no error');
+    t.equal(res.statusCode, 200, 'correct statusCode');
+    t.equal(res.body.is, 'plain object', 'correct body content');
     t.end();
   });
 });
 
-tape('mocker http-methods post', function (t) {
-  servertest(server, '/api/photo/300', { method: 'POST', encoding: 'json' }, function (err, res) {
-    t.ifError(err, 'no error')
-    t.equal(res.statusCode, 200, 'correct statusCode')
-    t.equal(res.body.foo, 'bar', 'correct body content')
+tape('mocker http-methods post', (t) => {
+  servertest(server, '/api/photo/300', { method: 'POST', encoding: 'json' }, (err, res) => {
+    t.ifError(err, 'no error');
+    t.equal(res.statusCode, 200, 'correct statusCode');
+    t.equal(res.body.foo, 'bar', 'correct body content');
     t.end();
   })
   .end();
 });
 
-tape('mocker http-methods route post', function (t) {
-  servertest(server, '/api/album/333', { method: 'POST', encoding: 'json' }, function (err, res) {
-    t.ifError(err, 'no error')
-    t.equal(res.statusCode, 200, 'correct statusCode')
-    t.equal(res.body.albumid, 888, 'correct body content')
+tape('mocker http-methods route post', (t) => {
+  servertest(server, '/api/album/333', { method: 'POST', encoding: 'json' }, (err, res) => {
+    t.ifError(err, 'no error');
+    t.equal(res.statusCode, 200, 'correct statusCode');
+    t.equal(res.body.albumid, 888, 'correct body content');
     t.end();
   })
   .end();
 });
 
-tape('require nonexists module throws', function (t) {
-  servertest(server, '/api/throw/500', { method: 'GET', encoding: 'json' }, function (err, res) {
+tape('require nonexists module throws', (t) => {
+  servertest(server, '/api/throw/500', { method: 'GET', encoding: 'json' }, (err, res) => {
     t.ok(err, 'throw err');
     t.end();
   })
   .end();
 });
-//*/
