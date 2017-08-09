@@ -1,4 +1,4 @@
-/* eslint global-require: 0, no-console:0, strict:0 , prefer-template: 0*/
+/* eslint global-require: 0, prefer-template: 0*/
 'use strict';
 const fs = require('fs');
 const url = require('url');
